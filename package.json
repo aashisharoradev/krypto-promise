@@ -1,0 +1,30 @@
+{
+  "name": "krypto-promise",
+  "version": "0.0.1",
+  "description": "This module is to create jose tokens natively",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aashisharoradev/krypto-promise.git"
+  },
+  "homepage": "https://github.com/aashisharoradev/krypto-promise",
+  "scripts": {
+    "test": "mocha"
+  },
+  "directories": {
+    "test": "./test"
+  },
+  "keywords": [
+    "JOSE",
+    "Crypto"
+  ],
+  "author": "Aashish Arora",
+  "license": "MIT",
+  "dependencies": {
+    "node-gyp": "^8.0.0",
+    "yup": "^0.32.9"
+  },
+  "devDependencies": {
+    "mocha": "^8.4.0"
+  }
+}

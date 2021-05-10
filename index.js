@@ -1,7 +1,14 @@
-'use strict';
-const { calculateHMAC } = require('./lib/hmac');
+const threadedFunction = require('./lib/common/convert-thread');
+const { calculateHMAC } = require('./lib/operations/hmac');
 
 module.exports = {
-    calculateHMAC
+    promised: {
+        calculateHMAC: calculateHMAC
+    },
+    threaded: {
+        calculateHMAC: function (opts) {
+            return threadedFunction('hmac', arguments.callee.name , opts)();
+        } 
+    }
 }
 

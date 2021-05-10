@@ -1,7 +1,7 @@
 {
   "targets": [
     {
-      "target_name": "krypto-native",
+      "target_name": "kryptonative",
       "sources": [ "src/crypto.cc" ]
     }
   ]

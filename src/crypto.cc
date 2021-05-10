@@ -48,13 +48,9 @@ void CalculateHMAC(const v8::FunctionCallbackInfo<v8::Value>& info) {
      info.GetReturnValue().Set(resolver->GetPromise());
 }
 
-void Init(v8::Local<v8::Object> exports, v8::Local<v8::Value> module, void* priv) {
-     NODE_SET_METHOD(exports, "calculateHMAC", CalculateHMAC);
+
+NODE_MODULE_INIT() {
+      v8::Isolate* isolate = context->GetIsolate();
+
+      exports->Set(context, v8::String::NewFromUtf8(isolate, "calculateHMAC", v8::NewStringType::kNormal).ToLocalChecked(), v8::Function::New(context, CalculateHMAC).ToLocalChecked()).FromJust();
 }
-
-
-
-
-
-
-NODE_MODULE(kryptonative, Init)

@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('assert');
-const { calculateHMAC } = require('../index').promised;
+const { calculateHMAC } = require('../index');
 
 describe('#calculateHMAC', () => {
   it('Should be able to create signature', async () => {

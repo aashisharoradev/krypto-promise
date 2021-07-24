@@ -1,7 +1,4 @@
-#include<node.h>
-#include <node_buffer.h>
-
-#include "integrity.cc"
+#include "crypto.h"
 
 v8::Local<v8::Value> CalculateHAMCPromise(v8::Local<v8::Promise::Resolver> resolver, v8::Isolate* isolate, v8::Local<v8::Object> data) {
 
@@ -51,6 +48,6 @@ void CalculateHMAC(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 NODE_MODULE_INIT() {
       v8::Isolate* isolate = context->GetIsolate();
-
-      exports->Set(context, v8::String::NewFromUtf8(isolate, "calculateHMAC", v8::NewStringType::kNormal).ToLocalChecked(), v8::Function::New(context, CalculateHMAC).ToLocalChecked()).FromJust();
+      CRYPTO_METHOD("calculateHMAC", CalculateHMAC)
+      //exports->Set(context, v8::String::NewFromUtf8(isolate, "calculateHMAC", v8::NewStringType::kNormal).ToLocalChecked(), v8::Function::New(context, CalculateHMAC).ToLocalChecked()).FromJust();
 }

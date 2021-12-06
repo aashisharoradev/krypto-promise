@@ -1,7 +1,14 @@
 'use strict';
-const { calculateHMAC } = require('./lib/operations/hmac');
+const { calculateHMAC, verifyHMAC } = require('./lib/operations/hmac');
+const { generateRSAKeyPair } = require('./lib/operations/key-pair');
 
 module.exports = {
-    calculateHMAC
+    integrity: {
+        calculateHMAC,
+        verifyHMAC
+    },
+    keygen: {
+        generateRSAKeyPair
+    }
 }
 

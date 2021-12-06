@@ -4,6 +4,7 @@
 #include <node_buffer.h>
 #include <iostream>
 #include "integrity.cc"
+#include "keygen.cc"
 
 #define CRYPTO_METHOD(jsName, name) \
                             exports->Set(context, v8::String::NewFromUtf8(isolate, jsName ,\

@@ -9,11 +9,9 @@
   },
   "homepage": "https://github.com/aashisharoradev/krypto-promise",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha --timeout 5000 --recursive test/"
   },
-  "directories": {
-    "test": "./test"
-  },
+
   "keywords": [
     "JOSE",
     "Crypto"

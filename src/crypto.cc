@@ -1,6 +1,6 @@
 #include "crypto.h"
 
-v8::Local<v8::Value> CalculateHAMCPromise(v8::Local<v8::Promise::Resolver> resolver, v8::Isolate* isolate, v8::Local<v8::Object> data) {
+v8::Local<v8::Value> createHMAC(v8::Local<v8::Promise::Resolver> resolver, v8::Isolate* isolate, v8::Local<v8::Object> data) {
 
      v8::Local<v8::Value> keyObject = data->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "key", v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
      v8::Local<v8::Value> messageObject = data->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "message", v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
@@ -24,9 +24,11 @@ v8::Local<v8::Value> CalculateHAMCPromise(v8::Local<v8::Promise::Resolver> resol
      EVP_PKEY_free(hmackey);
 
       if (result != 1) {
-          resolver->Reject(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "Unable to calculate HMAC", v8::NewStringType::kNormal).ToLocalChecked());
+          resolver->Reject(isolate->GetCurrentContext(), 
+            v8::String::NewFromUtf8(isolate, "Unable to calculate HMAC", v8::NewStringType::kNormal).ToLocalChecked()).FromJust();
       } else {
-          resolver->Resolve(isolate->GetCurrentContext(), node::Buffer::New(isolate, reinterpret_cast<char*>(signedValue), signedValueLen).ToLocalChecked());
+          resolver->Resolve(isolate->GetCurrentContext(), 
+            node::Buffer::New(isolate, reinterpret_cast<char*>(signedValue), signedValueLen).ToLocalChecked()).FromJust();
       }
 
      v8::Local<v8::Promise> promise = resolver->GetPromise();
@@ -34,20 +36,81 @@ v8::Local<v8::Value> CalculateHAMCPromise(v8::Local<v8::Promise::Resolver> resol
      return promise->Result();
 }
 
+v8::Local<v8::Value> createRSAKeyPair(v8::Local<v8::Promise::Resolver> resolver, v8::Isolate* isolate, v8::Local<v8::Object> data) {
+      v8::Local<v8::Value> modulusBitValue = data->Get(
+                                     isolate->GetCurrentContext(),
+                                     v8::String::NewFromUtf8(isolate, "modulusBits",
+                                                             v8::NewStringType::kNormal)
+                                         .ToLocalChecked())
+                                 .FromMaybe(v8::Local<v8::Value>());
 
-void CalculateHMAC(const v8::FunctionCallbackInfo<v8::Value>& info) {
+      double modulusBits = modulusBitValue->ToNumber(isolate->GetCurrentContext()).ToLocalChecked()->Value();
+
+      RSA *keyPair = crypto::createRSAKeyPair(modulusBits);
+      const BIGNUM* bigNumModulus = RSA_get0_n(keyPair);
+      char* modulus = BN_bn2hex(bigNumModulus);
+      int modLength = BN_num_bits(bigNumModulus);
+
+      const BIGNUM *bigNumExponent = RSA_get0_e(keyPair);
+      char* exponent = BN_bn2hex(bigNumExponent);
+      int exponentLength = BN_num_bits(bigNumExponent);
+
+      const BIGNUM *bigNumPrivate = RSA_get0_d(keyPair);
+      char* privateKey = BN_bn2hex(bigNumPrivate);
+      int privateKeyLength = BN_num_bits(bigNumPrivate);
+
+
+      RSA_free(keyPair);
+
+      v8::Local<v8::Object> keyPairObject = v8::Object::New(isolate);
+      
+      keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
+                        v8::String::NewFromUtf8(isolate, "modulus", v8::NewStringType::kNormal).ToLocalChecked(),
+                        node::Buffer::New(isolate, modulus, (modLength/8)).ToLocalChecked()).FromJust();
+
+      keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
+                        v8::String::NewFromUtf8(isolate, "exponent", v8::NewStringType::kNormal).ToLocalChecked(),
+                        node::Buffer::New(isolate, exponent, (exponentLength/8)).ToLocalChecked()).FromJust();
+      
+      keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
+                        v8::String::NewFromUtf8(isolate, "privateKey", v8::NewStringType::kNormal).ToLocalChecked(),
+                        node::Buffer::New(isolate, privateKey, (privateKeyLength/8)).ToLocalChecked()).FromJust();
+
+      resolver->Resolve(isolate->GetCurrentContext(), keyPairObject).FromJust();
+
+      v8::Local<v8::Promise> promise = resolver->GetPromise();
+
+      return promise->Result();
+}
+
+
+void HMAC(const v8::FunctionCallbackInfo<v8::Value>& info) {
      v8::Isolate* isolate = info.GetIsolate();
      v8::Local<v8::Object> data = info[0].As<v8::Object>()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
      
      v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(isolate->GetCurrentContext()).ToLocalChecked();
      
-     resolver->Resolve(isolate->GetCurrentContext(), CalculateHAMCPromise(resolver, isolate, data));
+     resolver->Resolve(isolate->GetCurrentContext(), 
+        createHMAC(resolver, isolate, data)).FromJust();
      info.GetReturnValue().Set(resolver->GetPromise());
+}
+
+
+void GenerateRSAKeyPair(const v8::FunctionCallbackInfo<v8::Value>& info) {
+      v8::Isolate* isolate = info.GetIsolate();
+      v8::Local<v8::Object> data = info[0].As<v8::Object>()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
+     
+      v8::Local<v8::Promise::Resolver> resolver = v8::Promise::Resolver::New(isolate->GetCurrentContext()).ToLocalChecked();
+
+      resolver->Resolve(isolate->GetCurrentContext(), 
+        createRSAKeyPair(resolver, isolate, data)).FromJust();
+      info.GetReturnValue().Set(resolver->GetPromise());
 }
 
 
 NODE_MODULE_INIT() {
       v8::Isolate* isolate = context->GetIsolate();
-      CRYPTO_METHOD("calculateHMAC", CalculateHMAC)
-      //exports->Set(context, v8::String::NewFromUtf8(isolate, "calculateHMAC", v8::NewStringType::kNormal).ToLocalChecked(), v8::Function::New(context, CalculateHMAC).ToLocalChecked()).FromJust();
+      CRYPTO_METHOD("calculateHMAC", HMAC)
+
+      CRYPTO_METHOD("generateRSAKeyPair", GenerateRSAKeyPair)
 }

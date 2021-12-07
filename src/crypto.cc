@@ -48,16 +48,19 @@ v8::Local<v8::Value> createRSAKeyPair(v8::Local<v8::Promise::Resolver> resolver,
 
       RSA *keyPair = crypto::createRSAKeyPair(modulusBits);
       const BIGNUM* bigNumModulus = RSA_get0_n(keyPair);
-      char* modulus = BN_bn2hex(bigNumModulus);
-      int modLength = BN_num_bits(bigNumModulus);
+      char *modulus = BN_bn2hex(bigNumModulus);
+      int modLength = BN_num_bytes(bigNumModulus);
+      v8::Local<v8::String> modulusLocal = v8::String::NewFromUtf8(isolate, modulus, v8::NewStringType::kNormal, modLength*2).ToLocalChecked();
 
       const BIGNUM *bigNumExponent = RSA_get0_e(keyPair);
       char* exponent = BN_bn2hex(bigNumExponent);
-      int exponentLength = BN_num_bits(bigNumExponent);
+      int exponentLength = BN_num_bytes(bigNumExponent);
+      v8::Local<v8::String> expLocal = v8::String::NewFromUtf8(isolate, exponent, v8::NewStringType::kNormal, exponentLength*2).ToLocalChecked();
 
       const BIGNUM *bigNumPrivate = RSA_get0_d(keyPair);
       char* privateKey = BN_bn2hex(bigNumPrivate);
-      int privateKeyLength = BN_num_bits(bigNumPrivate);
+      int privateKeyLength = BN_num_bytes(bigNumPrivate);
+      v8::Local<v8::String> privateKeyLocal = v8::String::NewFromUtf8(isolate, privateKey, v8::NewStringType::kNormal, privateKeyLength*2).ToLocalChecked();
 
 
       RSA_free(keyPair);
@@ -66,15 +69,15 @@ v8::Local<v8::Value> createRSAKeyPair(v8::Local<v8::Promise::Resolver> resolver,
       
       keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
                         v8::String::NewFromUtf8(isolate, "modulus", v8::NewStringType::kNormal).ToLocalChecked(),
-                        node::Buffer::New(isolate, modulus, (modLength/8)).ToLocalChecked()).FromJust();
+                        node::Buffer::New(isolate, modulusLocal, node::encoding::HEX).ToLocalChecked()).FromJust();
 
       keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
                         v8::String::NewFromUtf8(isolate, "exponent", v8::NewStringType::kNormal).ToLocalChecked(),
-                        node::Buffer::New(isolate, exponent, (exponentLength/8)).ToLocalChecked()).FromJust();
+                        node::Buffer::New(isolate, expLocal, node::encoding::HEX).ToLocalChecked()).FromJust();
       
       keyPairObject->CreateDataProperty(isolate->GetCurrentContext(),
                         v8::String::NewFromUtf8(isolate, "privateKey", v8::NewStringType::kNormal).ToLocalChecked(),
-                        node::Buffer::New(isolate, privateKey, (privateKeyLength/8)).ToLocalChecked()).FromJust();
+                        node::Buffer::New(isolate, privateKeyLocal, node::encoding::HEX).ToLocalChecked()).FromJust();
 
       resolver->Resolve(isolate->GetCurrentContext(), keyPairObject).FromJust();
 

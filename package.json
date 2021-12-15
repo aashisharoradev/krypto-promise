@@ -1,6 +1,6 @@
 {
   "name": "krypto-promise",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "This module is to create jose tokens natively",
   "main": "index.js",
   "repository": {

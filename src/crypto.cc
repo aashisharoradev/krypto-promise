@@ -5,7 +5,11 @@ v8::Local<v8::Value> createHMAC(v8::Local<v8::Promise::Resolver> resolver, v8::I
      v8::Local<v8::Value> keyObject = data->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "key", v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
      v8::Local<v8::Value> messageObject = data->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "message", v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
      v8::Local<v8::Value> alg = data->Get(isolate->GetCurrentContext(), v8::String::NewFromUtf8(isolate, "alg", v8::NewStringType::kNormal).ToLocalChecked()).ToLocalChecked();
-    
+     v8::Local<v8::String> algV8String = alg->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+
+     char hmacalg[algV8String->Length()];
+     algV8String->WriteUtf8(isolate, hmacalg);
+     
      const unsigned char* key = reinterpret_cast<const unsigned char*>(node::Buffer::Data(keyObject));
      size_t keyLength = node::Buffer::Length(keyObject);
     
@@ -18,7 +22,7 @@ v8::Local<v8::Value> createHMAC(v8::Local<v8::Promise::Resolver> resolver, v8::I
      unsigned char* signedValue;
      size_t signedValueLen = 0;
 
-     const char* hmacalg = *v8::String::Utf8Value(isolate, alg);
+     
      int result = crypto::hmac_it(message, messageLength, &signedValue, &signedValueLen, hmackey, hmacalg);
 
      EVP_PKEY_free(hmackey);

@@ -19,10 +19,10 @@
   "author": "Aashish Arora",
   "license": "MIT",
   "dependencies": {
-    "node-gyp": "^8.0.0",
-    "yup": "^0.32.9"
+    "node-gyp": "^8.4.1",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
-    "mocha": "^8.4.0"
+    "mocha": "^9.1.3"
   }
 }

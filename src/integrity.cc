@@ -21,7 +21,7 @@ namespace crypto {
 
     ctx = EVP_MD_CTX_new();
     if (ctx == NULL) {
-        std::cout << "EVP_MD_CTX_create failed, error 0x%lx\n" << ERR_get_error()<< std::endl;
+        std::cout << "EVP_MD_CTX_create failed, error" << ERR_get_error()<< std::endl;
         goto err;
     }
 
